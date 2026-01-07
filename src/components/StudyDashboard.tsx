@@ -1,22 +1,18 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StudyPlan, StudyDay, LearningMaterial, LearningUnit, TaskType } from '../types';
-import { CheckCircle2, Circle, ChevronDown, ChevronRight, ChevronLeft, BookOpen, Trophy, Brain, ClipboardCheck, Video, LayoutGrid, FileText, Image as ImageIcon, Sparkles, Layers, X, PlayCircle, ArrowRight, RotateCcw, FolderPlus } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { StudyPlan, LearningMaterial, LearningUnit, TaskType } from '../types';
+import { CheckCircle2, Circle, ChevronRight, ChevronLeft, BookOpen, Trophy, Brain, ClipboardCheck, LayoutGrid, FileText, Image as ImageIcon, Sparkles, Layers, X, ArrowRight, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 
 import CalendarView from './CalendarView';
-import ParsePreviewModal from './ParsePreviewModal';
 
 interface StudyDashboardProps {
   material: LearningMaterial;
   plan?: StudyPlan;
   onToggleUnit: (unitId: string, patch?: Partial<LearningUnit>) => void;
   onOpenPdf?: (page?: number, materialId?: string) => void;
-  onSelectMaterial?: (materialId: string) => void;
-  onReparseMaterialWithScreenshots?: (materialId: string) => void;
   materials: LearningMaterial[];
   plans: StudyPlan[];
   onOpenGenerator?: () => void;
-  onAddMaterial?: () => void;
 }
 
 const StudyDashboard: React.FC<StudyDashboardProps> = ({ 
@@ -24,33 +20,21 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
   plan, 
   onToggleUnit,
   onOpenPdf,
-  onSelectMaterial,
-  onReparseMaterialWithScreenshots,
   materials,
   plans,
   onOpenGenerator,
-  onAddMaterial
 }) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(1);
-  const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
   const [activeTab, setActiveTab] = useState<'tasks' | 'materials' | 'calendar'>(() => {
     if (plan) return 'tasks';
     return 'materials';
   });
   const [activeTask, setActiveTask] = useState<LearningUnit | null>(null);
   const [subStepIndex, setSubStepIndex] = useState(0);
-  const [previewMaterial, setPreviewMaterial] = useState<LearningMaterial | null>(null);
-  const [unitStartedAtMs, setUnitStartedAtMs] = useState<number | null>(null);
-
-  const [isCardFlipped, setIsCardFlipped] = useState(false);
-  const cardShownAtRef = useRef<number>(0);
-  const [cardResults, setCardResults] = useState<Array<{ card_id: string; result: 'known' | 'unknown'; response_time: number }>>([]);
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [userInput, setUserInput] = useState<string>('');
   const [submitted, setSubmitted] = useState(false);
-  const questionShownAtRef = useRef<number>(0);
-  const [questionResults, setQuestionResults] = useState<Array<{ question_id: string; is_correct: boolean; answer: string; time_spent: number }>>([]);
 
   // 连线题状态
   const [matchingSelections, setMatchingSelections] = useState<Record<string, string>>({});
@@ -65,14 +49,6 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
   const totalUnits = allUnits.length;
   const progress = totalUnits > 0 ? Math.round((doneCount / totalUnits) * 100) : 0;
 
-  const toggleDayCollapse = (index: number) => {
-    setCollapsedDays(prev => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const isDayCompleted = (day: StudyDay) => {
-    return day.units.every(u => u.status === 'done');
-  };
-
   const selectedDay = plan?.days.find(d => d.dayIndex === selectedDayIndex);
 
   const getTaskIcon = (type?: TaskType) => {
@@ -86,9 +62,7 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
   const handleTaskClick = (unit: LearningUnit) => {
     setActiveTask(unit);
     setSubStepIndex(0);
-    setUnitStartedAtMs(Date.now());
     // 重置所有题目状态
-    setIsCardFlipped(false);
     setSubmitted(false);
     setSelectedOption(null);
     setUserInput('');
@@ -149,7 +123,6 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
   const handleNext = () => {
     if (subStepIndex < currentTaskItems.length - 1) {
       setSubStepIndex(prev => prev + 1);
-      setIsCardFlipped(false);
       setSubmitted(false);
       setSelectedOption(null);
       setUserInput('');
@@ -165,7 +138,6 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
   const handlePrev = () => {
     if (subStepIndex > 0) {
       setSubStepIndex(prev => prev - 1);
-      setIsCardFlipped(false);
       setSubmitted(false);
       setSelectedOption(null);
       setUserInput('');
@@ -348,7 +320,6 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
       }
 
       const correctCount = allItems.filter(i => matchingSelections[i.left] === i.right).length;
-      const allMatched = Object.keys(matchingSelections).length === allItems.length;
       const allCorrect = correctCount === allItems.length;
       
       return (

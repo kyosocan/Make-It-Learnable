@@ -7,7 +7,6 @@ import {
   LearningUnit,
   LearningUnitKind,
   Resource,
-  TaskType,
 } from "./types";
 import { TosClient, ACLType } from '@volcengine/tos-sdk';
 
@@ -294,7 +293,6 @@ export async function extractContentBlocksWithAI(
 }
 
 export async function generateLearningUnitsFromBlocksWithAI(
-  resource: Pick<Resource, "id" | "title" | "fileName" | "materialType" | "notes">,
   blocks: ContentBlock[],
   screenshots?: MaterialScreenshot[],
   config?: AIServiceConfig
@@ -406,7 +404,7 @@ export async function parseMaterialWithAI(
         const pageNum = shot.pageNumber || (index + 1);
         try {
           const pageBlocks = await extractContentBlocksWithAI(resource, [shot], config);
-          const pageUnits = await generateLearningUnitsFromBlocksWithAI(resource, pageBlocks, [shot], config);
+          const pageUnits = await generateLearningUnitsFromBlocksWithAI(pageBlocks, [shot], config);
           const taggedUnits = pageUnits.map(u => ({ ...u, pageNumber: pageNum }));
           
           allBlocks = [...allBlocks, ...pageBlocks];
@@ -419,7 +417,7 @@ export async function parseMaterialWithAI(
     }
 
     const blocks = await extractContentBlocksWithAI(resource, undefined, config);
-    const units = await generateLearningUnitsFromBlocksWithAI(resource, blocks, undefined, config);
+    const units = await generateLearningUnitsFromBlocksWithAI(blocks, undefined, config);
     return { resource, blocks, units };
   } catch (error) {
     console.error("AI 解析失败:", error);

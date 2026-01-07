@@ -1,6 +1,6 @@
 import React from 'react';
 import { LearningMaterial } from '../types';
-import { BookOpen, FileText, Video, ChevronRight, Sparkles, Trash2, PlusCircle } from 'lucide-react';
+import { BookOpen, FileText, ChevronRight, Sparkles, Trash2, PlusCircle } from 'lucide-react';
 import clsx from 'clsx';
 
 interface MaterialCardProps {

@@ -281,47 +281,6 @@ const App: React.FC = () => {
     );
   };
 
-  const reparseMaterialWithScreenshots = async (materialId: string) => {
-    const m = materials.find(x => x.id === materialId);
-    if (!m) return;
-    const screenshots = (m.screenshots ?? []).slice(-3);
-    if (screenshots.length === 0) {
-      alert("还没有截图。请先打开 PDF 预览并点击“截图辅助理解”。");
-      return;
-    }
-
-    setMaterials(prev =>
-      prev.map(x => (x.id === materialId ? { ...x, title: x.title.replace(/（重新解析中…）$/, "") + "（重新解析中…）" } : x))
-    );
-
-    try {
-      const { units, resource, blocks } = await parseMaterialWithAI({
-        fileName: (m.resource?.fileName ?? `${m.title}.pdf`) as string,
-        materialType: m.type,
-        screenshots,
-      });
-
-      const next: LearningMaterial = {
-        ...m,
-        title: m.title.replace(/（重新解析中…）$/, ""),
-        type: resource.materialType,
-        totalUnits: units.length,
-        units: units.map((u, i) => ({ ...u, id: `${materialId}-${i}` })),
-        resource: { ...resource, id: `r-${materialId}`, title: m.resource?.title ?? m.title },
-        blocks: blocks.map((b, i) => ({ ...b, id: `${materialId}-b-${i + 1}`, resourceId: `r-${materialId}` })),
-      };
-
-      setMaterials(prev => prev.map(x => (x.id === materialId ? next : x)));
-      alert("已用截图完成重新解析。");
-    } catch (e) {
-      console.error(e);
-      alert("重新解析失败。");
-      setMaterials(prev =>
-        prev.map(x => (x.id === materialId ? { ...x, title: x.title.replace(/（重新解析中…）$/, "") } : x))
-      );
-    }
-  };
-
   const toggleUnitStatus = (unitId: string, patch?: Partial<LearningUnit>) => {
     setMaterials(prev => prev.map(m => {
       const hasUnit = m.units.some(u => u.id === unitId);
@@ -508,12 +467,9 @@ const App: React.FC = () => {
                   plan={activePlan || undefined}
                   onToggleUnit={toggleUnitStatus}
                   onOpenPdf={handleOpenPdf}
-                  onSelectMaterial={handleSelectMaterial}
-                  onReparseMaterialWithScreenshots={reparseMaterialWithScreenshots}
                   materials={materials}
                   plans={studyPlans}
                   onOpenGenerator={() => setIsGeneratorOpen(true)}
-                  onAddMaterial={() => setView('upload')}
                 />
               </div>
             )

@@ -3,11 +3,10 @@ import React from 'react';
 interface GuideBubbleProps {
   title: string;
   content: string;
-  onClose: () => void;
   onAction: () => void;
 }
 
-const GuideBubble: React.FC<GuideBubbleProps> = ({ title, content, onAction, onClose }) => {
+const GuideBubble: React.FC<GuideBubbleProps> = ({ title, content, onAction }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
       {/* 蒙层 - 允许点击穿透卡片区域 */}

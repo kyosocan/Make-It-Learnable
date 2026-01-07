@@ -1,6 +1,6 @@
 import React from 'react';
 import { LearningMaterial, StudyPlan, LearningUnit, TaskType } from '../types';
-import { CheckCircle2, Circle, BookOpen, FileText, Video, Sparkles, Brain, ClipboardCheck } from 'lucide-react';
+import { CheckCircle2, Circle, BookOpen, FileText, Sparkles, Brain, ClipboardCheck } from 'lucide-react';
 import clsx from 'clsx';
 
 interface TaskListViewProps {
@@ -52,7 +52,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({
     }
   };
 
-  const getTaskBadge = (type?: TaskType) => {
+  const getTaskBadge = (_type?: TaskType) => {
     return '练习';
   };
 

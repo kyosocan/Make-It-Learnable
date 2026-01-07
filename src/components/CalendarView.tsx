@@ -37,11 +37,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ materials, plans, onToggleU
   const tasksByDate: Record<string, { unit: LearningUnit; material: LearningMaterial | null }[]> = {};
   plans.forEach(plan => {
     plan.days.forEach(d => {
-      if (d.date) {
-        if (!tasksByDate[d.date]) tasksByDate[d.date] = [];
+      const dateKey = d.date;
+      if (dateKey) {
+        if (!tasksByDate[dateKey]) tasksByDate[dateKey] = [];
         d.units.forEach(u => {
           const material = materials.find(m => m.id === u.materialId) || null;
-          tasksByDate[d.date].push({ unit: u, material });
+          tasksByDate[dateKey].push({ unit: u, material });
         });
       }
     });

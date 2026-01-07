@@ -24,6 +24,7 @@ export type Resource = {
   materialType: LearningMaterialType;
   createdAt: number;
   notes?: string; // 用户补充说明（年级/科目/目标等）
+  ossUrl?: string; // 永久保存的 OSS 地址
 };
 
 export type ContentBlockType =

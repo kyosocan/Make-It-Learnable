@@ -59,6 +59,24 @@ async function uploadImageToTOS(dataUrl: string): Promise<string> {
   return `https://${TOS_BUCKET}.${TOS_ENDPOINT}/${fileName}`;
 }
 
+export async function uploadFileToTOS(file: File): Promise<string> {
+  if (!tosClient) {
+    console.warn('[TOS] TOS client not configured, returning local URL');
+    return URL.createObjectURL(file);
+  }
+
+  const fileName = `materials/${Date.now()}-${file.name}`;
+  
+  await tosClient.putObject({
+    bucket: TOS_BUCKET,
+    key: fileName,
+    body: file,
+    acl: ACLType.ACLPublicRead,
+  });
+
+  return `https://${TOS_BUCKET}.${TOS_ENDPOINT}/${fileName}`;
+}
+
 export interface AIServiceConfig {
   appId: string;
   appKey: string;

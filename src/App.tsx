@@ -4,7 +4,7 @@ import PlanGeneratorModal from './components/PlanGeneratorModal';
 import StudyDashboard from './components/StudyDashboard';
 import PdfViewer from './components/PdfViewer';
 import FileUpload from './components/FileUpload';
-import { parseMaterialWithAI, inferMaterialTypeFromFileName, generateStudyPlanWithAI } from './aiService';
+import { parseMaterialWithAI, inferMaterialTypeFromFileName, generateStudyPlanWithAI, uploadFileToTOS } from './aiService';
 import { FolderPlus, BookOpen, Layers, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -91,47 +91,55 @@ const App: React.FC = () => {
   const handleFileUpload = async (file: File) => {
     const newId = `m-ai-${Date.now()}`;
     const inferredType = inferMaterialTypeFromFileName(file.name);
-    const localFileUrl = inferredType === "pdf" ? URL.createObjectURL(file) : undefined;
-
-    const placeholder: LearningMaterial = {
-      id: newId,
-      title: `${file.name.replace(/\.[^.]+$/, "")}`,
-      type: inferredType,
-      totalUnits: 0,
-      units: [],
-      localFileUrl,
-      screenshots: [],
-      resource: {
-        id: `r-${newId}`,
-        title: file.name.replace(/\.[^.]+$/, ""),
-        source: "upload",
-        fileName: file.name,
-        materialType: inferredType,
-        createdAt: Date.now(),
-      },
-      blocks: [],
-      status: 'parsing',
-      parsingProgress: 0,
-    };
-
-    setMaterials(prev => [placeholder, ...prev]);
-    // 跳转回首页显示处理进度
+    
+    // 立即进入解析状态
     setView('selection');
 
-    // 模拟进度条
-    const progressInterval = setInterval(() => {
-      setMaterials(prev => prev.map(m => {
-        if (m.id === newId && m.status === 'parsing') {
-          const currentProgress = m.parsingProgress || 0;
-          if (currentProgress < 90) {
-            return { ...m, parsingProgress: currentProgress + Math.floor(Math.random() * 10) + 1 };
-          }
-        }
-        return m;
-      }));
-    }, 500);
+    let progressInterval: any;
 
     try {
+      // 1. 先将原始文件上传到 TOS
+      console.log('[TOS] Uploading original file...');
+      const ossUrl = await uploadFileToTOS(file);
+      console.log('[TOS] File upload complete:', ossUrl);
+
+      const placeholder: LearningMaterial = {
+        id: newId,
+        title: `${file.name.replace(/\.[^.]+$/, "")}`,
+        type: inferredType,
+        totalUnits: 0,
+        units: [],
+        localFileUrl: ossUrl,
+        screenshots: [],
+        resource: {
+          id: `r-${newId}`,
+          title: file.name.replace(/\.[^.]+$/, ""),
+          source: "upload",
+          fileName: file.name,
+          materialType: inferredType,
+          createdAt: Date.now(),
+          ossUrl,
+        },
+        blocks: [],
+        status: 'parsing',
+        parsingProgress: 0,
+      };
+
+      setMaterials(prev => [placeholder, ...prev]);
+
+      // 模拟进度条
+      progressInterval = setInterval(() => {
+        setMaterials(prev => prev.map(m => {
+          if (m.id === newId && m.status === 'parsing') {
+            const currentProgress = m.parsingProgress || 0;
+            if (currentProgress < 90) {
+              return { ...m, parsingProgress: currentProgress + Math.floor(Math.random() * 10) + 1 };
+            }
+          }
+          return m;
+        }));
+      }, 500);
+
       let autoScreenshots: MaterialScreenshot[] = [];
       // ... (pdf parsing logic)
 
@@ -180,9 +188,14 @@ const App: React.FC = () => {
         type: resource.materialType,
         totalUnits: units.length,
         units: units.map((u, i) => ({ ...u, id: `${newId}-${i}` })),
-        localFileUrl,
+        localFileUrl: ossUrl,
         screenshots: autoScreenshots,
-        resource: { ...resource, id: `r-${newId}`, title: file.name.replace(/\.[^.]+$/, "") },
+        resource: { 
+          ...resource, 
+          id: `r-${newId}`, 
+          title: file.name.replace(/\.[^.]+$/, ""),
+          ossUrl,
+        },
         blocks: blocks.map((b, i) => ({ ...b, id: `${newId}-b-${i + 1}`, resourceId: `r-${newId}` })),
         status: 'ready',
         parsingProgress: 100,

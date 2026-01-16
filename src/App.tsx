@@ -91,6 +91,13 @@ const App: React.FC = () => {
   const handleFileUpload = async (file: File) => {
     const newId = `m-ai-${Date.now()}`;
     const inferredType = inferMaterialTypeFromFileName(file.name);
+    const toDataUrl = (inputFile: File) =>
+      new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(reader.error || new Error("读取图片失败"));
+        reader.readAsDataURL(inputFile);
+      });
     
     // 立即进入解析状态
     setView('selection');
@@ -175,6 +182,17 @@ const App: React.FC = () => {
           console.error('[PDF] 全自动翻页渲染失败：', renderErr);
         }
       }
+      if (inferredType === 'image') {
+        const dataUrl = await toDataUrl(file);
+        autoScreenshots = [
+          {
+            id: `auto-shot-1-${Date.now()}`,
+            createdAt: Date.now(),
+            pageNumber: 1,
+            dataUrl,
+          },
+        ];
+      }
 
       const { units, resource, blocks } = await parseMaterialWithAI({
         fileName: file.name,
@@ -184,7 +202,7 @@ const App: React.FC = () => {
 
       const aiMaterial: LearningMaterial = {
         id: newId,
-        title: file.name.replace('.pdf', ''),
+        title: file.name.replace(/\.[^.]+$/, ""),
         type: resource.materialType,
         totalUnits: units.length,
         units: units.map((u, i) => ({ ...u, id: `${newId}-${i}` })),
@@ -459,6 +477,8 @@ const App: React.FC = () => {
                 title={materials.find(m => m.id === activeMaterialId)?.title || 'PDF 预览'}
                 pageNumber={selectedPage || 1}
                 fileUrl={materials.find(m => m.id === activeMaterialId)?.localFileUrl}
+                screenshots={materials.find(m => m.id === activeMaterialId)?.screenshots}
+                onPageChange={(page) => setSelectedPage(page)}
                 onCaptureScreenshot={(dataUrl) => {
                   if (!activeMaterialId) return;
                   addMaterialScreenshot(activeMaterialId, selectedPage || 1, dataUrl);

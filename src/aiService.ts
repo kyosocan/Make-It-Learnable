@@ -22,6 +22,12 @@ const TOS_REGION = import.meta.env.VITE_TOS_REGION || 'cn-beijing';
 const TOS_ENDPOINT = import.meta.env.VITE_TOS_ENDPOINT || 'tos-cn-beijing.volces.com';
 const TOS_BUCKET = import.meta.env.VITE_TOS_BUCKET || '';
 
+// TTS/ASR 配置
+const TTS_API_URL = import.meta.env.VITE_TTS_API_URL || 'https://openspeech.bytedance.com/api/v1/tts';
+const VOLCENGINE_APP_ID = import.meta.env.VITE_VOLCENGINE_APP_ID || '';
+const VOLCENGINE_ACCESS_TOKEN = import.meta.env.VITE_VOLCENGINE_ACCESS_TOKEN || '';
+const TTS_TOKEN = import.meta.env.VITE_TTS_TOKEN || '';
+
 // 仅在有配置时初始化 TOS 客户端
 const tosClient = TOS_AK && TOS_SK ? new TosClient({
   accessKeyId: TOS_AK,
@@ -29,6 +35,78 @@ const tosClient = TOS_AK && TOS_SK ? new TosClient({
   region: TOS_REGION,
   endpoint: TOS_ENDPOINT,
 }) : null;
+
+/**
+ * 语音合成 (TTS)
+ */
+export async function generateSpeech(text: string, voiceType: string = 'zh_male_M392_conversation_wvae_bigtts'): Promise<string> {
+  if (!VOLCENGINE_APP_ID || !TTS_TOKEN) {
+    console.warn('[TTS] AppID or Token not configured');
+    return '';
+  }
+
+  const response = await fetch(TTS_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer;${TTS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      app: { appid: VOLCENGINE_APP_ID, token: TTS_TOKEN, cluster: 'volcano_tts' },
+      user: { uid: 'test_user' },
+      audio: { voice_type: voiceType, encoding: 'mp3', speed_ratio: 1.0, rate: 24000 },
+      request: { reqid: Math.random().toString(36).slice(2), text, operation: 'query' },
+    }),
+  });
+
+  if (!response.ok) throw new Error(`TTS API 错误: ${response.status}`);
+  const data = await response.json();
+  if (data.code !== 3000) throw new Error(`TTS 失败: ${data.message}`);
+  return data.data; // 返回 base64
+}
+
+/**
+ * 语音识别 (ASR)
+ */
+export async function recognizeSpeech(audioBase64: string): Promise<string> {
+  if (!VOLCENGINE_APP_ID || !VOLCENGINE_ACCESS_TOKEN) {
+    console.warn('[ASR] AppID or Token not configured');
+    return 'Mock recognition result';
+  }
+
+  const response = await fetch('https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-App-Key': VOLCENGINE_APP_ID,
+      'X-Api-Access-Key': VOLCENGINE_ACCESS_TOKEN,
+      'X-Api-Resource-Id': 'volc.bigasr.auc_turbo',
+      'X-Api-Request-Id': Math.random().toString(36).slice(2),
+    },
+    body: JSON.stringify({
+      user: { uid: VOLCENGINE_APP_ID },
+      audio: { data: audioBase64 },
+      request: { model_name: 'bigmodel' },
+    }),
+  });
+
+  if (!response.ok) throw new Error(`ASR API 错误: ${response.status}`);
+  const data = await response.json();
+  return data.result?.text || '';
+}
+
+/**
+ * 口语测评 Mock
+ */
+export async function evaluateOral(audioBase64: string, referenceText: string): Promise<{ score: number; feedback: string }> {
+  console.log('[Oral] Evaluating audio for:', referenceText);
+  // 模拟评估延迟
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  return {
+    score: Math.floor(Math.random() * 40) + 60, // 60-100
+    feedback: 'Pronunciation is clear, but pay attention to the rhythm.'
+  };
+}
 
 async function uploadImageToTOS(dataUrl: string): Promise<string> {
   if (!tosClient) {
@@ -71,6 +149,7 @@ export async function uploadFileToTOS(file: File): Promise<string> {
     bucket: TOS_BUCKET,
     key: fileName,
     body: file,
+    contentType: file.type,
     acl: ACLType.ACLPublicRead,
   });
 
@@ -266,20 +345,25 @@ export async function extractContentBlocksWithAI(
 ): Promise<ContentBlock[]> {
   const hasImages = screenshots && screenshots.length > 0;
   const prompt = `
-你是特级教师。请识别资料中核心知识点（生字词、多音字、近反义词、课文理解要点等）。
+你是专业的语言教育专家。请从提供的课本页面或单词表截图中，识别并提取所有的核心英语单词、短语及其对应的中文含义、词性。
+
 资料名称：${resource.title}
 
 任务：
-1. 直接提取原始信息，不要加工。
-2. 数量：5-15 个核心知识块。
+1. 识别图片中的单词、短语。
+2. 提取其：英文 (word)、中文含义 (meaning)、词性 (pos)、例句 (example)。
+3. 数量：尽量提取所有清晰可见的重点词汇。
 
 输出格式（严格 JSON 数组）：
 [
   {
     "id": "b-1",
-    "type": "vocabulary|sentence|comprehension",
-    "title": "标题",
-    "summary": "详细内容描述"
+    "type": "vocabulary",
+    "title": "单词/短语原文",
+    "summary": "中文含义",
+    "pos": "词性",
+    "example": "例句",
+    "topic": "所属单元或主题"
   }
 ]
   `.trim();
@@ -316,44 +400,45 @@ export async function generateLearningUnitsFromBlocksWithAI(
   config?: AIServiceConfig
 ): Promise<LearningUnit[]> {
   const prompt = `
-你是特级教师。你的任务是将识别出的知识内容块（Blocks）加工为高效的学习单元。
+你是特级教师和语言教育专家。你的任务是将识别出的英语单词/短语内容块（Blocks）加工为全方位的“听说读写”训练单元。
 
 请遵循以下步骤进行处理：
 
-【步骤 1：单元划分】
-1. 每个知识块（Block）必须对应生成一个学习单元（Unit）。
-2. **重要**：生成的 Unit 的 "title" 必须与对应的 Block 的 "title" 完全一致。
+【步骤 1：单元设计】
+为每个单词/短语设计多种维度的练习。不要局限于单一题型。
 
-【步骤 2：高效格式判断】
-针对每个知识块，判断采用哪种练习格式最科学。禁止使用“闪卡”形式。
-判断依据：
-- 基础记忆类（如生字词）：必须使用拼写检测 (spelling)。
-- 概念辨析类（如多音字、易混词）：适合选择题 (choice)。
-- 语义关系类（如近反义词）：适合连线题 (matching)。
-- 实际应用类（如词语搭配、填空）：适合填空题 (fill_blank)。
-- 表达提升类（如仿写）：适合仿写题 (imitation)。
-- 深度理解类（如课文主题）：适合问答练习 (qa)。
+【步骤 2：题型库与格式】
+请根据以下题型库，为每个知识点选择最合适的 2-4 种练习：
 
-【步骤 3：结构化内容生成】
-- **拼写检测 (spelling)**: { "type": "spelling", "cards": [{ "word": "完整词语", "quiz": "带下划线的题目(如: 碧_)", "answer": "缺失的字(如: 绿)", "pinyin": "pīn yīn", "meaning": "意思" }] }
-- **选择题 (choice)**: { "type": "choice", "questions": [{ "question": "...", "options": ["A", "B", "C", "D"], "correct": 0, "explanation": "..." }] }
-- **连线题 (matching)**: { "type": "matching", "items": [{ "left": "...", "right": "..." }] }
-- **填空题 (fill_blank)**: { "type": "fill_blank", "questions": [{ "sentence": "句子必须包含空括号，且括号内严禁出现答案，如: 这里的风景真( )啊！", "answer": "正确答案", "explanation": "..." }] }
-- **仿写题 (imitation)**: { "type": "imitation", "questions": [{ "original": "原句", "skeleton": "结构", "tip": "技巧" }] }
-- **问答练习 (qa)**: { "type": "qa", "questions": [{ "question": "问题", "answer": "参考答案" }] }
+1. **单词配图 (word_image)**: { "type": "word_image", "word": "apple", "image_prompt": "a fresh red apple on a table" }
+2. **中文释义选择 (choice_definition)**: { "type": "choice_definition", "word": "apple", "options": ["苹果", "香蕉", "橘子", "梨"], "correct": 0 }
+3. **拼写填空 (spelling_fill_blank)**: { "type": "spelling_fill_blank", "meaning": "苹果", "answer": "apple", "hint": "a_p_e" }
+4. **听音选图 (listen_choice_image)**: { "type": "listen_choice_image", "audio_text": "apple", "options": [{"id": "a", "image_prompt": "apple"}, {"id": "b", "image_prompt": "banana"}], "correct": "a" }
+5. **听音选词 (listen_choice_word)**: { "type": "listen_choice_word", "audio_text": "apple", "options": ["apple", "apply", "ample", "april"], "correct": 0 }
+6. **听句默写 (dictation_sentence)**: { "type": "dictation_sentence", "audio_text": "I like to eat an apple every day.", "answer": "I like to eat an apple every day." }
+7. **跟读打分 (repeat_scoring)**: { "type": "repeat_scoring", "text": "apple", "standard_audio_text": "apple" }
+8. **图片→英文单词/短语 (image_to_word)**: { "type": "image_to_word", "image_prompt": "a red apple", "answer": "apple" }
+9. **看图说话 (describe_image)**: { "type": "describe_image", "image_prompt": "a child eating an apple in a garden", "reference_text": "A child is eating an apple." }
+10. **听问题回答 (listen_qa)**: { "type": "listen_qa", "audio_question": "What fruit is red and round?", "reference_answer": "It is an apple." }
+11. **互动阅读-填空 (interactive_reading)**: { "type": "interactive_reading", "text": "An ( ) a day keeps the doctor away.", "options": ["apple", "banana"], "correct": 0 }
+12. **选最佳标题 (best_title)**: { "type": "best_title", "passage": "...", "options": ["...", "..."], "correct": 0 }
+13. **互动听力 (interactive_listening)**: { "type": "interactive_listening", "audio_text": "...", "questions": [...], "summary_prompt": "Summarize the story." }
+14. **命题写作 (writing_prompt)**: { "type": "writing_prompt", "topic": "My favorite fruit", "requirements": ["at least 50 words", "mention why you like it"] }
+15. **命题口语 (speaking_prompt)**: { "type": "speaking_prompt", "topic": "Talk about your breakfast", "key_words": ["apple", "milk", "bread"] }
 
-【步骤 4：组装】
-1. title 必须等于原 Block 标题。
-2. payload 结构必须严格符合上述 JSON 定义。
+【步骤 3：输出要求】
+1. 输出必须是严格的 JSON 数组。
+2. 每个对象的 "kind" 必须是上述 15 种类型之一。
+3. "payload" 必须符合上述定义的结构。
 
-Blocks 内容: ${JSON.stringify(blocks.map(b => ({ title: b.title, summary: b.summary })))}
+Blocks 内容: ${JSON.stringify(blocks.map(b => ({ word: b.title, meaning: b.summary, pos: (b as any).pos, example: (b as any).example })))}
 
 输出 JSON 数组：
 [
   {
-    "title": "必须与 Block 标题一致",
-    "kind": "memory|discrimination|semantic|collocation|expression|comprehension",
-    "payload": { ...内容... }
+    "title": "练习标题",
+    "kind": "word_image|choice_definition|...",
+    "payload": { ... }
   }
 ]
   `.trim();

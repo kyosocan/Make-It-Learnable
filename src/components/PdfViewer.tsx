@@ -5,11 +5,13 @@ interface PdfViewerProps {
   title: string;
   pageNumber: number;
   fileUrl?: string;
+  screenshots?: { pageNumber: number; dataUrl: string }[];
   onCaptureScreenshot?: (dataUrl: string) => void;
+  onPageChange?: (page: number) => void;
   onBack: () => void;
 }
 
-const PdfViewer: React.FC<PdfViewerProps> = ({ title, pageNumber, fileUrl, onCaptureScreenshot, onBack }) => {
+const PdfViewer: React.FC<PdfViewerProps> = ({ title, pageNumber, fileUrl, screenshots, onCaptureScreenshot, onPageChange, onBack }) => {
   const [capturing, setCapturing] = useState(false);
   const [lastShotAt, setLastShotAt] = useState<number | null>(null);
 
@@ -106,7 +108,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ title, pageNumber, fileUrl, onCap
 
       {/* PDF Content Area */}
       <div className="flex-1 overflow-y-auto bg-slate-700/50 p-8 flex justify-center custom-scrollbar">
-        {pageHint ? (
+        {screenshots?.find(s => s.pageNumber === pageNumber) ? (
+          <div className="w-full max-w-4xl bg-white shadow-2xl rounded-xl overflow-hidden border border-white/10 flex flex-col">
+            <div className="px-4 py-2 text-[11px] text-slate-500 bg-slate-50 border-b flex items-center justify-between">
+              <span className="font-bold">资料预览（第 {pageNumber} 页 - 已通过 AI 解析）</span>
+              {lastShotAt && <span className="text-slate-400">最近截图：{new Date(lastShotAt).toLocaleTimeString()}</span>}
+            </div>
+            <img 
+              src={screenshots.find(s => s.pageNumber === pageNumber)?.dataUrl} 
+              alt={`Page ${pageNumber}`}
+              className="w-full h-auto object-contain bg-white"
+            />
+          </div>
+        ) : pageHint ? (
           <div className="w-full max-w-4xl bg-white shadow-2xl rounded-xl overflow-hidden border border-white/10">
             <div className="px-4 py-2 text-[11px] text-slate-500 bg-slate-50 border-b flex items-center justify-between">
               <span className="font-bold">PDF 预览（第 {pageNumber} 页）</span>
@@ -163,11 +177,22 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ title, pageNumber, fileUrl, onCap
       {/* PDF Footer / Controls */}
       <div className="px-6 py-3 bg-slate-900/80 border-t border-white/5 flex justify-center gap-4">
         <div className="flex bg-slate-800 rounded-lg p-1 items-center gap-2 border border-white/10 shadow-inner">
-          <button className="px-3 py-1 hover:bg-white/10 rounded text-xs font-bold disabled:opacity-30" disabled={pageNumber <= 1}>上一页</button>
+          <button 
+            onClick={() => onPageChange?.(pageNumber - 1)}
+            className="px-3 py-1 hover:bg-white/10 rounded text-xs font-bold disabled:opacity-30" 
+            disabled={pageNumber <= 1}
+          >
+            上一页
+          </button>
           <div className="h-4 w-[1px] bg-white/10 mx-1" />
-          <span className="text-xs font-black px-2">{pageNumber} / 40</span>
+          <span className="text-xs font-black px-2">{pageNumber} / {screenshots?.length || 40}</span>
           <div className="h-4 w-[1px] bg-white/10 mx-1" />
-          <button className="px-3 py-1 hover:bg-white/10 rounded text-xs font-bold">下一页</button>
+          <button 
+            onClick={() => onPageChange?.(pageNumber + 1)}
+            className="px-3 py-1 hover:bg-white/10 rounded text-xs font-bold"
+          >
+            下一页
+          </button>
         </div>
       </div>
     </div>

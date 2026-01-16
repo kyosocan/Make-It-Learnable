@@ -64,7 +64,23 @@ export type LearningUnitKind =
   | "expression" // 句子仿写 - 表达迁移
   | "comprehension" // 课文理解 - 结构化理解
   | "quiz" // 综合测试
-  | "review"; // 复习任务
+  | "review" // 复习任务
+  // 新增听说读写训练类型
+  | "word_image" // 单词配图
+  | "choice_definition" // 中文释义选择（四选一）
+  | "spelling_fill_blank" // 拼写填空（中文释义→拼写）
+  | "listen_choice_image" // 听音选图
+  | "listen_choice_word" // 听音选词
+  | "dictation_sentence" // 听句默写
+  | "repeat_scoring" // 跟读打分
+  | "image_to_word" // 图片→英文单词/短语
+  | "describe_image" // 看图说话
+  | "listen_qa" // 听问题回答
+  | "interactive_reading" // 互动阅读-填空
+  | "best_title" // 选最佳标题
+  | "interactive_listening" // 互动听力（选择+总结）
+  | "writing_prompt" // 命题写作
+  | "speaking_prompt"; // 命题口语
 
 export type LearningUnit = {
   id: string;

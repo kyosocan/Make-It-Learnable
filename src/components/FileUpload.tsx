@@ -31,7 +31,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadComplete }) => {
           ref={fileInputRef} 
           onChange={handleFileChange} 
           className="hidden" 
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
         />
 
         <div className="space-y-4">
@@ -41,6 +41,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadComplete }) => {
           <div>
             <h3 className="text-xl font-bold text-slate-800">上传学习资料</h3>
             <p className="text-slate-500 mt-2">提交后将自动回到资料列表，解析进度会显示在资料卡片上</p>
+            <p className="text-xs text-slate-400 mt-2">支持 PDF/DOC/DOCX/PNG/JPG/JPEG/WEBP</p>
           </div>
           <button className="mt-4 px-6 py-2 bg-primary-600 text-white rounded-xl font-medium shadow-lg shadow-primary-100">
             选择文件

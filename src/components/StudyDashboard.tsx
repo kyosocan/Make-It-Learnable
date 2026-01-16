@@ -172,19 +172,19 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
       const answer = item.answer || item.back || item.explanation || item.result || '暂无解析';
       
       return (
-        <div className="w-full max-w-3xl flex flex-col gap-8">
-          <div className="bg-white p-12 rounded-[3rem] shadow-xl border-4 border-slate-100 flex flex-col gap-8">
+        <div className="w-full max-w-2xl flex flex-col gap-4">
+          <div className="bg-white p-6 rounded-2xl shadow-md border-2 border-slate-100 flex flex-col gap-4">
             <div>
-              <span className="text-xs font-black text-slate-300 uppercase tracking-widest block mb-4">问题</span>
-              <h4 className="text-3xl font-black text-slate-800 leading-tight">{question}</h4>
+              <span className="text-xs font-black text-slate-300 uppercase tracking-widest block mb-2">问题</span>
+              <h4 className="text-xl font-black text-slate-800 leading-snug">{question}</h4>
             </div>
             
             {submitted && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                <div className="h-1 bg-slate-100 rounded-full" />
+              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4">
+                <div className="h-px bg-slate-100" />
                 <div>
-                  <span className="text-xs font-black text-green-400 uppercase tracking-widest block mb-4">参考答案</span>
-                  <div className="p-6 bg-green-50 rounded-2xl border-2 border-green-100 text-green-700 text-2xl font-black">
+                  <span className="text-xs font-black text-green-400 uppercase tracking-widest block mb-2">参考答案</span>
+                  <div className="p-4 bg-green-50 rounded-xl border border-green-100 text-green-700 text-lg font-bold">
                     {answer}
                   </div>
                 </div>
@@ -201,43 +201,38 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
       const isCorrect = userInput.trim() === spell.answer.trim();
 
       return (
-        <div className="w-full max-w-2xl flex flex-col gap-8 items-center">
-          <div className="bg-white w-full p-12 rounded-[3rem] shadow-xl border-4 border-slate-100 flex flex-col items-center gap-6 text-center">
-             <div className="text-6xl font-black text-slate-800 tracking-widest mb-4">
+        <div className="w-full max-w-xl flex flex-col gap-4 items-center">
+          <div className="bg-white w-full p-6 rounded-2xl shadow-md border-2 border-slate-100 flex flex-col items-center gap-2 text-center">
+             <div className="text-4xl font-black text-slate-800 tracking-widest">
                {submitted ? spell.word : spell.quiz}
              </div>
-             {spell.pinyin && <div className="text-2xl font-bold text-primary-500 font-mono">{spell.pinyin}</div>}
-             {spell.meaning && <div className="text-slate-400 font-medium italic mt-2">“{spell.meaning}”</div>}
+             {spell.pinyin && <div className="text-lg font-bold text-primary-500 font-mono">{spell.pinyin}</div>}
+             {spell.meaning && <div className="text-slate-400 font-medium italic text-sm">“{spell.meaning}”</div>}
           </div>
           
           {!submitted ? (
-            <div className="flex flex-col items-center gap-4 w-full">
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && userInput.trim() && setSubmitted(true)}
-                placeholder="请输入缺失的字词"
-                className="w-64 px-6 py-4 bg-white border-4 border-slate-100 rounded-2xl text-2xl font-black text-center focus:border-primary-400 outline-none transition-all shadow-inner"
-                autoFocus
-              />
-            </div>
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && userInput.trim() && setSubmitted(true)}
+              placeholder="请输入缺失的字词"
+              className="w-52 px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-xl font-black text-center focus:border-primary-400 outline-none transition-all"
+              autoFocus
+            />
           ) : (
-             <div className="flex flex-col items-center gap-4 animate-in zoom-in">
+             <div className="flex flex-col items-center gap-2 animate-in zoom-in">
                <div className={clsx(
-                 "flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-xl border-4",
+                 "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-base border-2",
                  isCorrect ? "bg-green-50 border-green-500 text-green-600" : "bg-rose-50 border-rose-500 text-rose-600"
                )}>
-                 {isCorrect ? <CheckCircle2 size={28} /> : <X size={28} />}
-                 {isCorrect ? '回答正确！' : `回答错误，正确答案是：${spell.answer}`}
+                 {isCorrect ? <CheckCircle2 size={18} /> : <X size={18} />}
+                 {isCorrect ? '回答正确！' : `错误，答案：${spell.answer}`}
                </div>
                {!isCorrect && (
                  <button 
-                   onClick={() => {
-                     setSubmitted(false);
-                     setUserInput('');
-                   }}
-                   className="text-primary-500 font-bold hover:underline"
+                   onClick={() => { setSubmitted(false); setUserInput(''); }}
+                   className="text-primary-500 font-bold text-sm hover:underline"
                  >
                    再试一次
                  </button>
@@ -256,11 +251,11 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                           typeof item.answer === 'number' ? item.answer : 0;
       
       return (
-        <div className="w-full max-w-3xl flex flex-col gap-8">
-          <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border-2 border-slate-100">
-            <h4 className="text-2xl font-black text-slate-800 leading-snug">{question}</h4>
+        <div className="w-full max-w-2xl flex flex-col gap-4">
+          <div className="bg-white p-5 rounded-2xl shadow-md border-2 border-slate-100">
+            <h4 className="text-lg font-black text-slate-800 leading-snug">{question}</h4>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-2">
             {options.map((option: string, idx: number) => {
               const isSelected = selectedOption === idx;
               const isCorrect = idx === correctIndex;
@@ -275,7 +270,7 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                     setSubmitted(true);
                   }}
                   className={clsx(
-                    "p-6 rounded-2xl border-4 transition-all flex items-center gap-4 text-left font-bold text-lg",
+                    "p-4 rounded-xl border-2 transition-all flex items-center gap-3 text-left font-bold text-base",
                     !showResult && "bg-white border-slate-100 hover:border-primary-200 hover:bg-slate-50",
                     showResult && isCorrect && "bg-green-50 border-green-500 text-green-700",
                     showResult && isSelected && !isCorrect && "bg-rose-50 border-rose-500 text-rose-700",
@@ -283,7 +278,7 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                   )}
                 >
                   <div className={clsx(
-                    "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black",
+                    "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0",
                     !showResult && "bg-slate-100 text-slate-400",
                     showResult && isCorrect && "bg-green-500 text-white",
                     showResult && isSelected && !isCorrect && "bg-rose-500 text-white",
@@ -297,9 +292,9 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
             })}
           </div>
           {submitted && (item.explanation || item.analysis) && (
-            <div className="bg-amber-50 p-6 rounded-2xl border-2 border-amber-100 animate-in fade-in slide-in-from-top-2">
-              <p className="text-amber-800 text-sm font-bold leading-relaxed">
-                <span className="uppercase tracking-wider mr-2">解析:</span>
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 animate-in fade-in slide-in-from-top-2">
+              <p className="text-amber-800 text-sm font-medium leading-relaxed">
+                <span className="uppercase tracking-wider mr-2 font-bold">解析:</span>
                 {item.explanation || item.analysis}
               </p>
             </div>
@@ -339,9 +334,9 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
               )}
             </div>
             
-            <div className="grid grid-cols-2 gap-8 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+            <div className="grid grid-cols-2 gap-10 overflow-y-auto custom-scrollbar flex-1 min-h-0">
               {/* 左侧词语列表 */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-4">
                 <span className="text-xs font-bold text-slate-300 uppercase mb-2">词语</span>
                 {allItems.map((matchItem, idx) => {
                   const isSelected = selectedLeftItem === matchItem.left;
@@ -355,10 +350,10 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                       disabled={submitted}
                       onClick={() => setSelectedLeftItem(isSelected ? null : matchItem.left)}
                       className={clsx(
-                        "p-4 rounded-2xl border-4 font-black text-lg transition-all text-left flex items-center justify-between",
-                        !submitted && isSelected && "border-primary-500 bg-primary-50 text-primary-700",
+                        "p-6 rounded-[2rem] border-4 font-black text-xl transition-all text-left flex items-center justify-between min-h-[80px]",
+                        !submitted && isSelected && "border-primary-500 bg-primary-50 text-primary-700 shadow-lg -translate-y-1",
                         !submitted && !isSelected && hasMatch && "border-emerald-300 bg-emerald-50 text-emerald-700",
-                        !submitted && !isSelected && !hasMatch && "border-slate-100 bg-white hover:border-slate-200",
+                        !submitted && !isSelected && !hasMatch && "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md",
                         isCorrect && "border-green-500 bg-green-50 text-green-700",
                         isWrong && "border-rose-500 bg-rose-50 text-rose-700"
                       )}
@@ -366,7 +361,7 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                       <span>{matchItem.left}</span>
                       {hasMatch && (
                         <span className={clsx(
-                          "text-sm px-2 py-1 rounded-lg",
+                          "text-base px-3 py-1.5 rounded-xl font-bold",
                           isCorrect ? "bg-green-100 text-green-600" : 
                           isWrong ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-500"
                         )}>
@@ -379,7 +374,7 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
               </div>
               
               {/* 右侧选项列表 */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-4">
                 <span className="text-xs font-bold text-slate-300 uppercase mb-2">匹配项</span>
                 {shuffledRightItems.map((rightItem, idx) => {
                   const isUsed = Object.values(matchingSelections).includes(rightItem);
@@ -397,9 +392,9 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                         }
                       }}
                       className={clsx(
-                        "p-4 rounded-2xl border-4 font-black text-lg transition-all text-left",
-                        !submitted && selectedLeftItem && !isUsed && "border-slate-100 bg-white hover:border-primary-200 hover:bg-primary-50 cursor-pointer",
-                        !submitted && selectedLeftItem && isUsed && "border-slate-100 bg-slate-50 text-slate-400 line-through",
+                        "p-6 rounded-[2rem] border-4 font-black text-xl transition-all text-left min-h-[80px]",
+                        !submitted && selectedLeftItem && !isUsed && "border-slate-100 bg-white hover:border-primary-200 hover:bg-primary-50 cursor-pointer hover:shadow-md hover:-translate-y-1",
+                        !submitted && selectedLeftItem && isUsed && "border-slate-100 bg-slate-50 text-slate-400 line-through opacity-50",
                         !submitted && !selectedLeftItem && "border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed",
                         submitted && isCorrect && "border-green-500 bg-green-50 text-green-700",
                         submitted && !isCorrect && isUsed && "border-rose-500 bg-rose-50 text-rose-700",
@@ -467,16 +462,16 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
       const isCorrect = userInput.trim() === fillItem.answer.trim();
 
       return (
-        <div className="w-full max-w-3xl flex flex-col gap-8">
-          <div className="bg-white p-10 rounded-[3rem] shadow-xl border-4 border-slate-100 flex flex-col gap-6">
+        <div className="w-full max-w-2xl flex flex-col gap-4">
+          <div className="bg-white p-5 rounded-2xl shadow-md border-2 border-slate-100 flex flex-col gap-4">
             <div>
-              <span className="text-xs font-black text-slate-300 uppercase tracking-widest block mb-4">填空题</span>
-              <h4 className="text-2xl font-black text-slate-800 leading-relaxed">
+              <span className="text-xs font-black text-slate-300 uppercase tracking-widest block mb-2">填空题</span>
+              <h4 className="text-lg font-black text-slate-800 leading-relaxed">
                 {displaySentence.split('______').map((part, idx, arr) => (
                   <React.Fragment key={idx}>
                     {part}
                     {idx < arr.length - 1 && (
-                      <span className="inline-block mx-2 px-4 py-1 bg-primary-50 border-b-4 border-primary-400 rounded-lg min-w-[80px] text-center">
+                      <span className="inline-block mx-1 px-3 py-0.5 bg-primary-50 border-b-2 border-primary-400 rounded min-w-[60px] text-center">
                         {submitted ? (
                           <span className={isCorrect ? "text-green-600" : "text-rose-600"}>
                             {userInput || '　'}
@@ -492,38 +487,36 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
             </div>
             
             {!submitted ? (
-              <div className="flex flex-col gap-4">
-                <input
-                  type="text"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && userInput.trim() && setSubmitted(true)}
-                  placeholder="请输入答案..."
-                  className="w-full px-6 py-4 bg-slate-50 border-4 border-slate-100 rounded-2xl text-xl font-bold text-slate-800 focus:border-primary-400 focus:bg-white outline-none transition-all"
-                  autoFocus
-                />
-              </div>
+              <input
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && userInput.trim() && setSubmitted(true)}
+                placeholder="请输入答案..."
+                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-base font-bold text-slate-800 focus:border-primary-400 focus:bg-white outline-none transition-all"
+                autoFocus
+              />
             ) : (
-              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4">
                 <div className={clsx(
-                  "flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-lg border-4",
+                  "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-base border-2",
                   isCorrect ? "bg-green-50 border-green-500 text-green-600" : "bg-rose-50 border-rose-500 text-rose-600"
                 )}>
-                  {isCorrect ? <CheckCircle2 size={24} /> : <X size={24} />}
-                  {isCorrect ? '回答正确！' : `回答错误，正确答案：${fillItem.answer}`}
+                  {isCorrect ? <CheckCircle2 size={18} /> : <X size={18} />}
+                  {isCorrect ? '回答正确！' : `错误，答案：${fillItem.answer}`}
                 </div>
                 {fillItem.explanation && (
-                  <div className="p-4 bg-amber-50 rounded-2xl border-2 border-amber-100">
-                    <span className="text-xs font-black text-amber-500 uppercase block mb-2">解析</span>
-                    <p className="text-amber-800 font-medium">{fillItem.explanation}</p>
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                    <span className="text-xs font-black text-amber-500 uppercase block mb-1">解析</span>
+                    <p className="text-amber-800 font-medium text-sm">{fillItem.explanation}</p>
                   </div>
                 )}
                 {!isCorrect && (
                   <button 
                     onClick={() => { setSubmitted(false); setUserInput(''); }}
-                    className="text-primary-500 font-bold hover:underline flex items-center gap-2"
+                    className="text-primary-500 font-bold text-sm hover:underline flex items-center gap-1"
                   >
-                    <RotateCcw size={16} /> 再试一次
+                    <RotateCcw size={14} /> 再试一次
                   </button>
                 )}
               </div>
@@ -631,47 +624,43 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
     <div className="flex flex-col gap-6 h-full min-h-0 relative">
       {/* 任务遮罩层保持原样 */}
       {activeTask && (
-        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[100] flex items-center justify-center p-4 md:p-8">
-          <div className="bg-[#F8FAFC] w-full max-w-5xl h-full max-h-[850px] rounded-[3.5rem] shadow-2xl flex flex-col overflow-hidden border-[12px] border-slate-800">
-            <div className="px-10 py-8 flex justify-between items-center bg-white border-b border-slate-100">
-              <div className="flex items-center gap-5">
-                <div className={clsx("w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner", activeTask.type === 'flashcard' ? "bg-rose-50 text-rose-500" : "bg-amber-50 text-amber-500")}>
-                  <ClipboardCheck size={28} />
+        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+          <div className="bg-[#F8FAFC] w-full max-w-4xl h-full max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border-4 border-slate-800">
+            <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center gap-4 shrink-0">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className={clsx("w-10 h-10 rounded-xl flex items-center justify-center", activeTask.type === 'flashcard' ? "bg-rose-50 text-rose-500" : "bg-amber-50 text-amber-500")}>
+                  <ClipboardCheck size={20} />
                 </div>
-                <div>
-                  <h3 className="font-black text-slate-800 text-2xl tracking-tight">{activeTask.title}</h3>
-                </div>
+                <h3 className="font-black text-slate-800 text-lg tracking-tight">{activeTask.title}</h3>
               </div>
-              <button onClick={() => setActiveTask(null)} className="w-12 h-12 flex items-center justify-center bg-slate-100 text-slate-400 rounded-full hover:bg-rose-50 hover:text-rose-500 transition-all active:scale-90"><X size={24} /></button>
-            </div>
-            <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50/30 p-12 items-center">
               {currentTaskItems.length > 0 && (
-                <div className="w-full max-w-2xl mb-12 shrink-0">
-                  <div className="flex justify-between text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">
-                    <span>第 {subStepIndex + 1} / {currentTaskItems.length} 个任务</span>
-                    <span>{Math.round(((subStepIndex + 1) / currentTaskItems.length) * 100)}%</span>
-                  </div>
-                  <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner border-2 border-white">
+                <div className="flex-1 flex items-center gap-4">
+                  <div className="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden shadow-inner border-2 border-white">
                     <div 
                       className="h-full bg-primary-500 transition-all duration-500 rounded-full shadow-lg" 
                       style={{ width: `${((subStepIndex + 1) / currentTaskItems.length) * 100}%` }} 
                     />
                   </div>
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                    {subStepIndex + 1}/{currentTaskItems.length}
+                  </span>
                 </div>
               )}
-
-              <div className="flex-1 w-full flex flex-col items-center min-h-0 overflow-y-auto">
+              <button onClick={() => setActiveTask(null)} className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-400 rounded-full hover:bg-rose-50 hover:text-rose-500 transition-all active:scale-90 shrink-0"><X size={20} /></button>
+            </div>
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto bg-slate-50/30 p-6 flex flex-col items-center justify-center">
                 {renderTaskContent()}
               </div>
 
-              <div className="mt-12 flex items-center gap-6">
+              <div className="shrink-0 py-4 px-6 bg-white border-t border-slate-100 flex items-center justify-center gap-4">
                 {subStepIndex > 0 && (
-                  <button 
-                    onClick={handlePrev}
-                    className="w-16 h-16 flex items-center justify-center bg-white border-4 border-slate-100 rounded-2xl text-slate-400 hover:border-primary-200 hover:text-primary-500 transition-all active:scale-90"
-                  >
-                    <ChevronLeft size={32} />
-                  </button>
+                <button 
+                  onClick={handlePrev}
+                  className="w-12 h-12 flex items-center justify-center bg-white border-2 border-slate-100 rounded-xl text-slate-400 hover:border-primary-200 hover:text-primary-500 transition-all active:scale-90"
+                >
+                  <ChevronLeft size={24} />
+                </button>
                 )}
                 
                 <button 
@@ -714,7 +703,7 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                     return false;
                   })()}
                   className={clsx(
-                    "px-12 py-6 rounded-3xl font-black text-xl shadow-xl transition-all active:scale-95 flex items-center gap-3",
+                    "px-8 py-4 rounded-2xl font-black text-base shadow-lg transition-all active:scale-95 flex items-center gap-2",
                     (!submitted && needsSubmission && (activeTask?.payload as any)?.type !== 'choice')
                       ? "bg-slate-900 text-white shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1"
                       : (subStepIndex < currentTaskItems.length - 1 
@@ -736,17 +725,17 @@ const StudyDashboard: React.FC<StudyDashboardProps> = ({
                     const payloadType = (activeTask?.payload as any)?.type;
                     if (!submitted && needsSubmission && payloadType !== 'choice') {
                       if (['qa', 'imitation'].includes(payloadType)) {
-                        return <>查看结果 <ArrowRight size={24} /></>;
+                        return <>查看结果 <ArrowRight size={20} /></>;
                       }
                       if (payloadType === 'matching') {
-                        return <>检查匹配 <ArrowRight size={24} /></>;
+                        return <>检查匹配 <ArrowRight size={20} /></>;
                       }
-                      return <>提交回答 <ArrowRight size={24} /></>;
+                      return <>提交回答 <ArrowRight size={20} /></>;
                     }
                     if (subStepIndex < currentTaskItems.length - 1) {
-                      return <>下一个 <ArrowRight size={24} /></>;
+                      return <>下一个 <ArrowRight size={20} /></>;
                     }
-                    return <>完成单元 <Trophy size={24} /></>;
+                    return <>完成单元 <Trophy size={20} /></>;
                   })()}
                 </button>
               </div>
